@@ -1,4 +1,5 @@
 import asyncio
+from os import fwalk
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import parse_mode
 from aiogram.methods import delete_message
@@ -6,7 +7,7 @@ from aiogram.types import Message, message
 from aiogram.filters import Command
 import logging 
 
-from keyboards import start_keyboard, add_kyeboard_category, delete_product
+from keyboards import start_keyboard, add_kyeboard_category, delete_product, add_transport
 import database
 import exceptions
 
@@ -50,7 +51,22 @@ async def add_btn(message: Message):
 async def add_eat(query: types.CallbackQuery):
     global is_add
     is_add = query.data
-    await query.message.edit_text("Добавь данные")
+
+    text = "Добавь данные"
+    reply_markup = add_transport() if query.data == "transport" else None
+
+    await query.message.edit_text(text, reply_markup=reply_markup)
+
+
+is_add_bus = False
+@dp.callback_query(lambda c: c.data == "prod_bus")
+async def add_bus(query: types.CallbackQuery):
+    database.add_data_db("Автобус", 31, "transport")
+    global is_add
+    is_add = ''
+    await delete_messages(query.message, 1)
+    await query.message.answer("Выбери опцию:", reply_markup=start_keyboard())
+
 
 @dp.message(lambda message: is_add)
 async def add_message_data(message: Message):

@@ -11,6 +11,14 @@ def start_keyboard():
     )
     return keyboard
 
+def add_transport():
+    keyboard = types.InlineKeyboardMarkup(
+            inline_keyboard=[
+                [types.InlineKeyboardButton(text="Автобус", callback_data='prod_bus')]
+                ]
+            )
+    return keyboard
+
 def add_kyeboard_category():
     data_category = get_dict_categories()
     iter_ = 0
