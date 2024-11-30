@@ -109,7 +109,6 @@ async def link_db(message: Message):
     sum_product = 0
     result = ''
     db_dict = database.get_dict_products()
-    print(db_dict)
     for category, items in db_dict.items():
         sum_category = 0
         result += f"<b>{category}</b>:\n"

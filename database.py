@@ -46,7 +46,6 @@ def get_dict_products():
     JOIN categories ON products.category_name = categories.codename;
     ''')
     data = data.fetchall()
-    print(data)
     db = {}
     for product in data:
         if db.get(product[3]) is not None:
