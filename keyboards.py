@@ -40,10 +40,3 @@ def add_kyeboard_category():
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=lins_dict_keyboards)
     return keyboard
 
-def delete_product():
-    keyboard = types.InlineKeyboardMarkup(
-            inline_keyboard=[
-                [types.InlineKeyboardButton(text="Удалить", callback_data='delete_product')]
-                ]
-            )
-    return keyboard
