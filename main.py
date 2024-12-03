@@ -1,14 +1,20 @@
 import asyncio
+from os import stat
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message
 from aiogram.filters import Command
 import logging 
+
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import StateFilter
 
 from keyboards import start_keyboard, add_kyeboard_category, add_transport
 import database
 import exceptions
 import utils
 
+from routers.add_expenses import router as expenses_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,6 +23,8 @@ TOKEN = "7501798547:AAGvtk56v6bXAV4pm9HhEoG1UB5ap3324FY"
 # Создаем бота, диспетчер и роутер
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
+# dp.include_router(expenses_router)
 
 # Global
 CODENAME_CAT = [cat[0] for cat in database.get_dict_categories()]
@@ -28,60 +36,62 @@ async def start_command(message: Message):
     await message.answer("Привет, я твой бот для хранения расходов, выбери действие", reply_markup=start_keyboard())
 
 # -------------------- Добавление данных -------------------------
-is_add = ''
-is_add_category = False
+
+class Form(StatesGroup):
+    category = State()
+    product = State()
+
+    is_add_category = State()
+    
+    delete_data = State()
 
 @dp.message(lambda message: message.text == "Добавить")
 async def add_btn(message: Message):
     await utils.delete_messages(message, 2)
     await message.answer("Категории", reply_markup=add_kyeboard_category())
 
-
 @dp.callback_query(lambda c: c.data in CODENAME_CAT)
-async def add_eat(query: types.CallbackQuery):
-    global is_add
-    is_add = query.data
-
+async def add_eat(query: types.CallbackQuery, state: FSMContext):    
+    await state.set_data({'category': query.data})
     reply_markup = add_transport() if query.data == "transport" else None
-
     await query.message.edit_text("Добавить данные", reply_markup=reply_markup)
+    await state.set_state(Form.product)
 
 
-is_add_bus = False
 @dp.callback_query(lambda c: c.data == "prod_bus")
-async def add_bus(query: types.CallbackQuery):
+async def add_bus(query: types.CallbackQuery, state: FSMContext):
     database.add_data_db("Автобус", 31, "transport")
-    global is_add
-    is_add = ''
     await utils.delete_messages(query.message, 1)
+    await state.clear()
     await query.message.answer("Выбери опцию:", reply_markup=start_keyboard())
 
 
-@dp.message(lambda message: is_add)
-async def add_message_data(message: Message):
+@dp.message(StateFilter(Form.product))
+async def add_message_data(message: Message, state: FSMContext):
+    data = await state.get_data()
     try:
         name, price = utils.parse_message(message.text)
-        global is_add
-        database.add_data_db(name, price, is_add)
+
+        database.add_data_db(name, price, data["category"])
         await message.answer(text="Выбери опцию:", reply_markup=start_keyboard())
-        is_add = ''
+        await state.clear()
     except exceptions.NotCorrectMessage:
         await message.answer("Введитие правильные данные", reply_markup=add_kyeboard_category())
     finally:
         await utils.delete_messages(message, 2)
 
 @dp.callback_query(lambda c: c.data == 'Add_category')
-async def add_category(query: types.CallbackQuery):
-    global is_add_category
-    is_add_category = True
+async def add_category(query: types.CallbackQuery, state: FSMContext):
     await query.message.edit_text("Добавь категорию")
+    await state.set_state(Form.is_add_category)
 
-@dp.message(lambda message: is_add_category)
+@dp.message(StateFilter(Form.is_add_category))
 async def add_name_category(message: Message):
     nams_cat = message.text.split(' ')
     database.add_category(nams_cat[1], nams_cat[0])
+    global CODENAME_CAT
+    CODENAME_CAT = [cat[0] for cat in database.get_dict_categories()]
     await message.answer("Категория была добавлена", reply_markup=start_keyboard())
-
 
 # ---------------------- Просмотр данных ---------------------------
 @dp.message(lambda message: message.text == "Смотреть")
@@ -90,14 +100,13 @@ async def link_db(message: Message):
     result = await utils.get_str_data()
     await message.answer(result, reply_markup=start_keyboard(), parse_mode='HTML') if result else await message.answer("Данных нет", replay_markup=start_keyboard())
 
-is_delete_product = False
-@dp.message(Command("del"))
-async def func_delete_product(message: Message):
-    global is_delete_product
-    is_delete_product = True
-    await message.answer("Выберете какой продукт будет удалён")
 
-@dp.message(lambda message: is_delete_product)
+@dp.message(Command("del"))
+async def func_delete_product(message: Message, state: FSMContext):
+    await message.answer("Выберете какой продукт будет удалён")
+    await state.set_state(Form.delete_data)
+
+@dp.message(StateFilter(Form.delete_data))
 async def add_name_category(message: Message):
     database.del_product(message.text)
     result = await utils.get_str_data()
