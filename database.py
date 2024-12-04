@@ -26,7 +26,7 @@ def add_category(codename: str, name: str):
     conn.commit()
     conn.close()
 
-def add_data_db(name: str, price: int, category_name: str):
+def add_data_db(name: str, price: int | float, category_name: str):
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
 
@@ -64,4 +64,22 @@ def del_product(product_id: int):
     conn.commit()
     conn.close()
 
+def add_income(name: str, price: int | float):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
 
+    cur.execute('''
+                INSERT INTO income (name, price)
+                VALUES (?, ?)
+                ''', (name, price))
+    conn.commit()
+    conn.close()
+
+def get_income():
+    cur = create_connect()
+
+    data = cur.execute('''
+    SELECT name, price FROM income;
+    ''')
+    data = data.fetchall()
+    return data

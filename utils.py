@@ -23,6 +23,7 @@ async def delete_messages(message: Message, count: int = 3):
 async def get_str_data():
     sum_product = 0
     result = ''
+    result += "<b>РАСХОДЫ</b>\n\n"
     db_dict = database.get_dict_products()
     for category, items in db_dict.items():
         sum_category = 0
@@ -32,7 +33,17 @@ async def get_str_data():
             sum_category += item[2]
         result += f"<i>Сумма: {sum_category}</i>\n\n"
         sum_product += sum_category
-    result += f"\n<b>Всего</b>: {sum_product}"
+    result += f"<b>Всего</b>: {sum_product}\n\n"
+
+    sum_income = 0
+    db_income = database.get_income()
+    result += "<b>ДОХОДЫ</b>\n"
+    for data in db_income:
+        result += f"- {data[0]}: {data[1]}\n"
+        sum_income += data[1]
+    result += f"<b>Всего</b>: {sum_income}\n\n"
+
+    result += f"<b>Остаток</b>: {sum_income - sum_product}"
     return result
 
 

@@ -4,7 +4,8 @@ from database import get_dict_categories
 def start_keyboard():
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text="Добавить"), types.KeyboardButton(text="Смотреть")]
+            [types.KeyboardButton(text="Расходы"), types.KeyboardButton(text="Доходы")],
+            [types.KeyboardButton(text="Смотреть")]
         ],
         resize_keyboard=True,
         one_time_keyboard=True

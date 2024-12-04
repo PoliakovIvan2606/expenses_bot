@@ -15,6 +15,12 @@ CREATE TABLE products (
         ON DELETE CASCADE                -- Удаление всех продуктов при удалении категории
 );
 
+CREATE TABLE income (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL
+);
+
 -- Вставка данных в таблицу categories
 INSERT INTO categories (codename, name) VALUES 
 ('eat', 'Еда'),
