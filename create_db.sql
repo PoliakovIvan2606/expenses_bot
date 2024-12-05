@@ -15,6 +15,7 @@ CREATE TABLE products (
         ON DELETE CASCADE                -- Удаление всех продуктов при удалении категории
 );
 
+
 CREATE TABLE income (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(255) NOT NULL,

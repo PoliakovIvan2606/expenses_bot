@@ -40,10 +40,10 @@ async def start_command(message: Message):
 class Form(StatesGroup):
     category = State()
     product = State()
-
+    
     is_add_category = State()
     
-    delete_data = State()
+    delete_data = State()    
     
     income = State()
 
@@ -103,6 +103,7 @@ async def add_income_func(message: Message, state: FSMContext):
     await utils.delete_messages(message, 2)
     await message.answer("Введите данные")
     await state.set_state(Form.income)
+
 
 @dp.message(StateFilter(Form.income))
 async def add_message_data(message: Message, state: FSMContext):
